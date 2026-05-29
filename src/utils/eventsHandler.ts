@@ -1,8 +1,8 @@
-import { Client } from "discord.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { Event } from "../structures/Event";
+import { BotClient } from "../structures/BotClient";
 const root = path.join(__dirname, "..");
 
 const eventsPath = path.join(root, "events");
@@ -10,7 +10,7 @@ const eventFiles = fs
   .readdirSync(eventsPath)
   .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
-export function registerEvent(client: Client) {
+export function registerEvent(client: BotClient) {
   eventFiles.forEach((file) => {
     const filePath = path.join(eventsPath, file);
     const event: Event = require(filePath).default;

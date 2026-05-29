@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { BotClient } from "../structures/BotClient";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -9,7 +9,7 @@ const root = path.join(__dirname, "..");
 const folderPath = path.join(root, "commands");
 const commandsFolders = fs.readdirSync(folderPath);
 
-export function registerCmds(client: Client) {
+export function registerCmds(client: BotClient) {
   commandsFolders.forEach((folder) => {
     const commandsPath = path.join(folderPath, folder);
     const commandFiles = fs
