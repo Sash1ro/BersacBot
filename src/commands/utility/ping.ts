@@ -35,7 +35,6 @@ async function onPing(interaction: ChatInputCommandInteraction) {
     ) ?? false;
 
   await interaction.reply({
-    withResponse: true,
     content: "Pinging....",
     flags: isEphemeral ? MessageFlags.Ephemeral : undefined,
   });
@@ -46,10 +45,21 @@ async function onPing(interaction: ChatInputCommandInteraction) {
   const embed = new EmbedBuilder();
   embed.setTitle("Latency");
   embed.setColor([63, 55, 201]);
-  embed.setDescription(
-    `Message : ${inlineCode(roundtrip.toString() + "ms")}
-     Bot : ${inlineCode(websocket.toString() + "ms")}`,
+
+  embed.addFields(
+    {
+      name: "Message",
+      value: inlineCode(roundtrip.toString() + "ms"),
+      inline: true,
+    },
+    {
+      name: "Bot",
+      value: inlineCode(websocket.toString() + "ms"),
+      inline: true,
+    },
   );
+
+  embed.setThumbnail(interaction.client.user.avatarURL());
 
   await interaction.editReply({
     embeds: [embed],
