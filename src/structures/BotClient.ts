@@ -1,4 +1,10 @@
-import { Client, Collection, GatewayIntentBits } from "discord.js";
+import {
+  ActivityType,
+  Client,
+  Collection,
+  GatewayIntentBits,
+  PresenceUpdateStatus,
+} from "discord.js";
 import { Command } from "./Command";
 
 export class BotClient extends Client {
@@ -13,6 +19,11 @@ export class BotClient extends Client {
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
       ],
+    });
+
+    this.user?.setStatus(PresenceUpdateStatus.DoNotDisturb);
+    this.user?.setActivity("Le caca est cuit", {
+      type: ActivityType.Playing,
     });
   }
 }
