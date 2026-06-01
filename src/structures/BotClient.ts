@@ -8,7 +8,10 @@ import {
 import { Command } from "./Command";
 
 export class BotClient extends Client {
-  public commands = new Collection<string, Command>();
+  public commands: Collection<string, Command> = new Collection<
+    string,
+    Command
+  >();
 
   constructor() {
     super({

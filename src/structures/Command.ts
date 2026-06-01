@@ -2,6 +2,7 @@ import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
   SlashCommandOptionsOnlyBuilder,
+  ColorResolvable,
 } from "discord.js";
 
 interface CommandOptions {
@@ -16,6 +17,7 @@ interface CommandOptions {
 export class Command {
   public data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
   public execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  public primaryColor: ColorResolvable = [63, 55, 201];
 
   public constructor(options: CommandOptions) {
     const data = new SlashCommandBuilder()

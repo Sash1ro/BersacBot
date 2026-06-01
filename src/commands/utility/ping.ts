@@ -44,7 +44,7 @@ async function onPing(interaction: ChatInputCommandInteraction) {
 
   const embed = new EmbedBuilder();
   embed.setTitle("Latency");
-  embed.setColor([63, 55, 201]);
+  embed.setColor(command.primaryColor);
 
   embed.addFields(
     {
