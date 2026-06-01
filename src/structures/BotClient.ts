@@ -23,10 +23,5 @@ export class BotClient extends Client {
         GatewayIntentBits.GuildVoiceStates,
       ],
     });
-
-    this.user?.setStatus(PresenceUpdateStatus.DoNotDisturb);
-    this.user?.setActivity("Le caca est cuit", {
-      type: ActivityType.Playing,
-    });
   }
 }

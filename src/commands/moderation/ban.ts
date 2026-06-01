@@ -5,6 +5,7 @@ import {
   SlashCommandUserOption,
   EmbedBuilder,
   SlashCommandStringOption,
+  GuildMember,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
@@ -22,7 +23,8 @@ const reason = new SlashCommandStringOption()
 
 const command = new Command({
   name: "ban",
-  description: "ban an user",
+  description: "ban a user",
+  perms: ["BanMembers"],
   builder: (data: SlashCommandBuilder) =>
     data.addUserOption(target).addStringOption(reason),
   execute: async (interaction: ChatInputCommandInteraction) =>
@@ -30,22 +32,34 @@ const command = new Command({
 });
 
 async function onBan(interaction: ChatInputCommandInteraction) {
-  const user = interaction.options.getUser(target.name, target.required);
+  const user = interaction.options.getMember(target.name) as GuildMember | null;
   const reasono = interaction.options.getString(reason.name, reason.required);
 
   if (!user) return;
 
+  if (!user.moderatable) {
+    await interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      embeds: [new ErrorEmbed("I don't have permission to ban this user.")],
+    });
+    return;
+  }
+
   const embed = new EmbedBuilder();
 
   embed.setTitle("Moderation");
-  embed.setDescription(`${user?.displayName} was banned from this server`);
+  embed.setDescription(`${user?.displayName} was banned from this server `);
   embed.setColor(command.primaryColor);
+
+  if (reasono) {
+    embed.addFields([{ name: "Reason : ", inline: true, value: reasono }]);
+  }
 
   await interaction.guild?.members.ban(user, {
     reason: reasono ? reasono : "No reason provided",
   });
 
-  await interaction.reply({ flags: MessageFlags.Ephemeral, embeds: [embed] });
+  await interaction.reply({ embeds: [embed] });
 }
 
 export default command;
