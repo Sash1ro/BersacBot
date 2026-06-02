@@ -62,6 +62,7 @@ async function onPing(interaction: ChatInputCommandInteraction) {
   embed.setThumbnail(interaction.client.user.avatarURL());
 
   await interaction.editReply({
+    content: "",
     embeds: [embed],
   });
 }
