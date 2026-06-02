@@ -63,11 +63,10 @@ async function onTalk(interaction: ChatInputCommandInteraction) {
     avatarURL: user.displayAvatarURL(),
   });
 
-  if (interaction.channel?.id != channel.id)
-    await interaction.reply({
-      embeds: [new SuccessEmbed(`Message sent to ${channel.name}`)],
-      flags: MessageFlags.Ephemeral,
-    });
+  await interaction.reply({
+    embeds: [new SuccessEmbed(`Message sent to ${channel.name}`)],
+    flags: MessageFlags.Ephemeral,
+  });
 }
 
 export default command;

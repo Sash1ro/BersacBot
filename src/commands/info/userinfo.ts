@@ -7,6 +7,7 @@ import {
   time,
   escapeMarkdown,
   TimestampStyles,
+  hyperlink,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
@@ -28,24 +29,26 @@ const command: Command = new Command({
 });
 
 async function onUser(interaction: ChatInputCommandInteraction) {
-  const member =
-    (interaction.options.getMember(user.name) as GuildMember) ??
-    (interaction.member as GuildMember);
+  const member = (interaction.options.getMember(user.name) ||
+    interaction.member) as GuildMember;
 
   const embed = new SuccessEmbed();
-  embed.setColor(member.displayColor);
+  embed.setColor(member.displayColor || null);
   embed.setThumbnail(member.displayAvatarURL());
   embed.setTitle(member.displayName);
   embed.setURL(`https://discord.com/users/${member.id}`);
 
   const deco = member.user.avatarDecorationData
-    ? `[link](${member.user.avatarDecorationURL()})`
+    ? hyperlink("link", member.user.avatarDecorationURL() || "")
     : "None";
 
-  const roles: string = member.roles.cache
+  let roles: string = member.roles.cache
     .filter((r) => r.rawPosition > 0)
     .map((role) => `${roleMention(role.id)}`)
     .join(", ");
+
+  if (!roles.length) roles = "None";
+  if (roles.length > 1024) roles = roles.substring(0, 1020) + "...";
 
   embed.setDescription(`
     ${bold("ID")} : ${member.id}
@@ -53,19 +56,17 @@ async function onUser(interaction: ChatInputCommandInteraction) {
     ${bold("Decoration")} : ${deco}
     `);
 
+  const joinedAt = member.joinedAt
+    ? `${time(member.joinedAt)} (${time(member.joinedAt, TimestampStyles.RelativeTime)})`
+    : "Unknown";
+  const createdAt = member.user.createdAt
+    ? `${time(member.user.createdAt)} (${time(member.user.createdAt, TimestampStyles.RelativeTime)})`
+    : "Unknown";
+
   embed.setFields([
-    {
-      name: "Roles :",
-      value: roles,
-    },
-    {
-      name: "Joined at :",
-      value: `${time(member.joinedAt as Date)} (${time(member.joinedAt as Date, TimestampStyles.RelativeTime)})`,
-    },
-    {
-      name: "Joined discord at :",
-      value: `${time(member.user.createdAt as Date)} (${time(member.user.createdAt as Date, TimestampStyles.RelativeTime)})`,
-    },
+    { name: "Roles :", value: roles },
+    { name: "Joined at :", value: joinedAt },
+    { name: "Joined discord at :", value: createdAt },
   ]);
 
   interaction.reply({ embeds: [embed] });

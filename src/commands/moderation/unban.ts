@@ -6,6 +6,7 @@ import {
   EmbedBuilder,
   SlashCommandStringOption,
   GuildMember,
+  PermissionFlagsBits,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
@@ -24,7 +25,7 @@ const reason = new SlashCommandStringOption()
 const command = new Command({
   name: "unban",
   description: "unban a user",
-  perms: ["BanMembers"],
+  perms: [PermissionFlagsBits.BanMembers],
   builder: (data: SlashCommandBuilder) =>
     data.addUserOption(target).addStringOption(reason),
   execute: async (interaction: ChatInputCommandInteraction) =>

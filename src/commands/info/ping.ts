@@ -4,6 +4,7 @@ import {
   SlashCommandBooleanOption,
   EmbedBuilder,
   inlineCode,
+  InteractionContextType,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
@@ -18,7 +19,11 @@ const ephemeralOption = new SlashCommandBooleanOption()
 const command: Command = new Command({
   name: "ping",
   description: "Return the bot latency",
-
+  context: [
+    InteractionContextType.BotDM,
+    InteractionContextType.Guild,
+    InteractionContextType.PrivateChannel,
+  ],
   builder: (data) => data.addBooleanOption(ephemeralOption),
 
   execute: async (interaction: ChatInputCommandInteraction) =>

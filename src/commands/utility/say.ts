@@ -1,5 +1,6 @@
 import {
   ChatInputCommandInteraction,
+  InteractionContextType,
   MessageFlags,
   SlashCommandBuilder,
   SlashCommandChannelOption,

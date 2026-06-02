@@ -7,6 +7,7 @@ import {
   EmbedBuilder,
   GuildMember,
   SlashCommandStringOption,
+  PermissionFlagsBits,
 } from "discord.js";
 import { Command } from "../../structures/Command";
 import { ErrorEmbed } from "../../structures/ErrorEmbed";
@@ -29,7 +30,7 @@ const reason = new SlashCommandStringOption()
 const command = new Command({
   name: "timeout",
   description: "Timeout a user",
-  perms: ["ModerateMembers"],
+  perms: [PermissionFlagsBits.ModerateMembers],
   builder: (data: SlashCommandBuilder) =>
     data.addUserOption(target).addNumberOption(time).addStringOption(reason),
   execute: async (interaction: ChatInputCommandInteraction) =>

@@ -1,6 +1,7 @@
 import {
   ChatInputCommandInteraction,
   MessageFlags,
+  PermissionFlagsBits,
   SlashCommandBuilder,
   SlashCommandIntegerOption,
   TextChannel,
@@ -17,7 +18,10 @@ const amountOption = new SlashCommandIntegerOption()
 const command = new Command({
   name: "clear",
   description: "clear messages from this channel",
-  perms: ["ManageChannels", "ManageMessages"],
+  perms: [
+    PermissionFlagsBits.ManageChannels,
+    PermissionFlagsBits.ManageMessages,
+  ],
   builder: (data: SlashCommandBuilder) => data.addIntegerOption(amountOption),
   execute: async (interaction: ChatInputCommandInteraction) =>
     onClear(interaction),
