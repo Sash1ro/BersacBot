@@ -1,5 +1,6 @@
 import { Events, Message, BaseGuildTextChannel } from "discord.js";
 import { Event } from "../structures/Event";
+import { Logger } from "../utils/logger";
 
 const banned: { [key: string]: string } = {
   idiot: "バカ",
@@ -61,7 +62,7 @@ const event = new Event({
         avatarURL: message.author.displayAvatarURL(),
       });
     } catch (error) {
-      console.error("Erreur lors de l'exécution du filtrage :", error);
+      Logger.error("Something went wrong while applying filters");
     }
   },
 });

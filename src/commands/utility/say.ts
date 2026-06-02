@@ -7,6 +7,7 @@ import {
   TextChannel,
 } from "discord.js";
 import { Command } from "../../structures/Command";
+import { SuccessEmbed } from "../../structures/SuccessEmbed";
 
 const messageOption = new SlashCommandStringOption()
   .setName("message")
@@ -31,19 +32,11 @@ async function onTalk(interaction: ChatInputCommandInteraction) {
   const channel =
     (interaction.options.getChannel(channelOption.name) as TextChannel) ??
     (interaction.channel as TextChannel);
-  const message = interaction.options.getString(messageOption.name);
-
-  if (!message) {
-    interaction.reply({
-      content: "Message is needed",
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+  const message = interaction.options.getString(messageOption.name, true);
 
   await channel.send({ content: message });
   await interaction.reply({
-    content: `Message sent to ${channel.name}`,
+    embeds: [new SuccessEmbed(`Message sent to ${channel.name}`)],
     flags: MessageFlags.Ephemeral,
   });
 }

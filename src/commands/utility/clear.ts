@@ -6,6 +6,7 @@ import {
   TextChannel,
 } from "discord.js";
 import { Command } from "../../structures/Command";
+import { SuccessEmbed } from "../../structures/SuccessEmbed";
 
 const amountOption = new SlashCommandIntegerOption()
   .setName("amount")
@@ -34,9 +35,14 @@ async function onClear(interaction: ChatInputCommandInteraction) {
 
   const deleted = await channel.bulkDelete(amount, true);
 
-  await interaction.editReply(
-    `Deleted **${deleted.size}** message${deleted.size === 1 ? "" : "s"}.`,
-  );
+  await interaction.editReply({
+    content: "",
+    embeds: [
+      new SuccessEmbed(
+        `Deleted **${deleted.size}** message${deleted.size === 1 ? "" : "s"}.`,
+      ),
+    ],
+  });
 }
 
 export default command;
