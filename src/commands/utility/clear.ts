@@ -5,6 +5,7 @@ import {
   SlashCommandIntegerOption,
   TextChannel,
 } from "discord.js";
+
 import { Command } from "../../structures/Command";
 import { SuccessEmbed } from "../../structures/SuccessEmbed";
 
@@ -16,6 +17,7 @@ const amountOption = new SlashCommandIntegerOption()
 const command = new Command({
   name: "clear",
   description: "clear messages from this channel",
+  perms: ["ManageChannels", "ManageMessages"],
   builder: (data: SlashCommandBuilder) => data.addIntegerOption(amountOption),
   execute: async (interaction: ChatInputCommandInteraction) =>
     onClear(interaction),

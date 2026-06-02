@@ -1,6 +1,12 @@
-import { Events, Message, BaseGuildTextChannel } from "discord.js";
+import {
+  Events,
+  Message,
+  BaseGuildTextChannel,
+  AttachmentBuilder,
+} from "discord.js";
 import { Event } from "../structures/Event";
 import { Logger } from "../utils/logger";
+import path from "node:path";
 
 const banned: { [key: string]: string } = {
   idiot: "バカ",
@@ -36,6 +42,27 @@ const event = new Event({
   once: false,
   async execute(message: Message) {
     if (message.author.bot) return;
+
+    if (message.content.toLocaleLowerCase().includes("laroche")) {
+      const file = new AttachmentBuilder(
+        path.join(__dirname, "../assets/respect-pokemon.gif"),
+        { name: "respect.gif" },
+      );
+
+      await message.reply({
+        content: "Par respect pour les pierres",
+        files: [file],
+      });
+      return;
+    }
+
+    if (message.content.toLocaleLowerCase().includes("quoi")) {
+      await message.reply({
+        content: "feur",
+      });
+      return;
+    }
+
     if (!message.content.match(rgx)) return;
 
     try {
