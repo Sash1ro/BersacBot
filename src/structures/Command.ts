@@ -39,43 +39,56 @@ export class Command {
       .setDescription(options.description);
 
     this.data = options.builder ? options.builder(data) : data;
-
-    if (options.perms && options.perms.length > 0) {
-      const combinedPerms = options.perms.reduce((acc, perm) => acc | perm, 0n);
-      this.data.setDefaultMemberPermissions(combinedPerms);
-    }
-
-    if (options.context) this.data.setContexts(...options.context);
-    else this.data.setContexts(InteractionContextType.Guild);
+    this.applyPerms(options.perms);
+    this.applyCtx(options.context);
 
     if (options.subcommands && options.subcommands.length > 0) {
-      options.subcommands.forEach((subCmd) => {
-        (this.data as SlashCommandBuilder).addSubcommand((subBuilder) => {
-          subBuilder.setName(subCmd.name).setDescription(subCmd.description);
-          return subCmd.builder ? subCmd.builder(subBuilder) : subBuilder;
-        });
-      });
-
-      this.execute = async (interaction: ChatInputCommandInteraction) => {
-        const subCommandName = interaction.options.getSubcommand(false);
-
-        if (subCommandName) {
-          const targetSubcommand = options.subcommands!.find(
-            (sub) => sub.name === subCommandName,
-          );
-          if (targetSubcommand) {
-            return targetSubcommand.execute(interaction);
-          }
-        }
-        if (options.execute) return options.execute(interaction);
-      };
+      this.registerSubCmds(options.subcommands);
+      this.execute = this.buildDispatcher(options.subcommands);
     } else {
-      if (!options.execute) {
+      if (!options.execute)
         throw new Error(
           `Command "${options.name}" requires an execute function.`,
         );
-      }
+
       this.execute = options.execute;
     }
+  }
+
+  private applyPerms(perms?: bigint[]): void {
+    if (perms && perms.length > 0) {
+      const combinedPerms = perms.reduce((acc, perm) => acc | perm, 0n);
+      this.data.setDefaultMemberPermissions(combinedPerms);
+    }
+  }
+
+  private applyCtx(context?: InteractionContextType[]): void {
+    if (context) this.data.setContexts(...context);
+    else this.data.setContexts(InteractionContextType.Guild);
+  }
+
+  private registerSubCmds(subcommands: SubcommandOptions[]): void {
+    subcommands.forEach((subCmd) => {
+      (this.data as SlashCommandBuilder).addSubcommand((subBuilder) => {
+        subBuilder.setName(subCmd.name).setDescription(subCmd.description);
+        return subCmd.builder ? subCmd.builder(subBuilder) : subBuilder;
+      });
+    });
+  }
+
+  private buildDispatcher(
+    subcommands: SubcommandOptions[],
+  ): (interaction: ChatInputCommandInteraction) => Promise<void> {
+    return async (interaction: ChatInputCommandInteraction) => {
+      const subCommandName = interaction.options.getSubcommand(false);
+
+      if (subCommandName) {
+        const targetSubcommand = subcommands.find(
+          (sub) => sub.name === subCommandName,
+        );
+        if (targetSubcommand) return targetSubcommand.execute(interaction);
+        throw new Error(`Unknown subcommand "${subCommandName}"`);
+      }
+    };
   }
 }
