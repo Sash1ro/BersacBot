@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { Command } from "../structures/Command";
+import { Logger } from "./logger";
 
 const root = path.join(__dirname, "..");
 
@@ -19,12 +20,14 @@ export function registerCmds(client: BotClient) {
     commandFiles.forEach((file) => {
       const filePath = path.join(commandsPath, file);
       const command: Command = require(filePath).default;
-      if (command instanceof Command)
-        client.commands.set(command.data.name, command);
-      else
-        console.warn(
+      if (!(command instanceof Command)) {
+        Logger.warn(
           `The command at ${filePath} is not a valid Command instance.`,
         );
+        return;
+      }
+
+      client.commands.set(command.data.name, command);
     });
   });
 }

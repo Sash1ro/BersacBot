@@ -1,14 +1,15 @@
 import {
   ChatInputCommandInteraction,
+  DMChannel,
+  GuildTextBasedChannel,
   InteractionContextType,
   MessageFlags,
   SlashCommandBuilder,
   SlashCommandChannelOption,
   SlashCommandStringOption,
-  TextChannel,
 } from "discord.js";
 import { Command } from "../../structures/Command";
-import { SuccessEmbed } from "../../structures/SuccessEmbed";
+import { reply, replyEphemeral } from "../../utils/interactionUtils";
 
 const messageOption = new SlashCommandStringOption()
   .setName("message")
@@ -23,23 +24,53 @@ const channelOption = new SlashCommandChannelOption()
 const command = new Command({
   name: "say",
   description: "send a message via the bot",
+  context: [
+    InteractionContextType.BotDM,
+    InteractionContextType.Guild,
+    InteractionContextType.PrivateChannel,
+  ],
   builder: (data: SlashCommandBuilder) =>
     data.addStringOption(messageOption).addChannelOption(channelOption),
   execute: async (interaction: ChatInputCommandInteraction) =>
-    onTalk(interaction),
+    onExecute(interaction),
 });
 
-async function onTalk(interaction: ChatInputCommandInteraction) {
-  const channel =
-    (interaction.options.getChannel(channelOption.name) as TextChannel) ??
-    (interaction.channel as TextChannel);
+async function onExecute(
+  interaction: ChatInputCommandInteraction,
+): Promise<void> {
+  const chosenChannel = interaction.options.getChannel(channelOption.name);
   const message = interaction.options.getString(messageOption.name, true);
 
-  await channel.send({ content: message });
-  await interaction.reply({
-    embeds: [new SuccessEmbed(`Message sent to ${channel.name}`)],
-    flags: MessageFlags.Ephemeral,
-  });
+  if (interaction.context === InteractionContextType.Guild) {
+    const channel = (chosenChannel ??
+      interaction.channel) as GuildTextBasedChannel;
+
+    if (!channel) {
+      await replyEphemeral(interaction, "Could not find the text channel.");
+      return;
+    }
+
+    await channel.send({ content: message });
+    await replyEphemeral(interaction, `Message sent to ${channel.name}`);
+    return;
+  }
+
+  if (chosenChannel) {
+    await replyEphemeral(
+      interaction,
+      "Can't choose a channel outside of a server.",
+    );
+    return;
+  }
+
+  const channel = interaction.channel as DMChannel;
+
+  if (channel) {
+    await channel.send({ content: message });
+    await replyEphemeral(interaction, `Message sent`);
+  } else {
+    await reply(interaction, message);
+  }
 }
 
 export default command;

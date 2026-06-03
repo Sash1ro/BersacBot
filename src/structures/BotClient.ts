@@ -1,10 +1,13 @@
 import {
   ActivityType,
+  BaseGuildTextChannel,
   Client,
   Collection,
   GatewayIntentBits,
   PresenceStatusData,
   PresenceUpdateStatus,
+  TextChannel,
+  Webhook,
 } from "discord.js";
 import { Command } from "./Command";
 import { Logger } from "../utils/logger";
@@ -18,6 +21,8 @@ export class BotClient extends Client {
   public status: PresenceStatusData = PresenceUpdateStatus.DoNotDisturb;
   public activity: string = "Le caca est cuit";
   public activtyType: ActivityType = ActivityType.Playing;
+
+  private wbName: string = "Bot Shadow Editor";
 
   constructor() {
     super({
@@ -41,5 +46,21 @@ export class BotClient extends Client {
     this.user?.setActivity(this.activity, {
       type: this.activtyType,
     });
+  }
+
+  public async getWebhookForChannel(
+    channel: TextChannel | BaseGuildTextChannel,
+  ): Promise<Webhook> {
+    const channelWebhooks = await channel.fetchWebhooks();
+    let webhook = channelWebhooks.find((c) => c.name === this.wbName);
+
+    if (!webhook) {
+      webhook = await channel.createWebhook({
+        name: this.wbName,
+        avatar: this.user?.displayAvatarURL(),
+      });
+    }
+
+    return webhook;
   }
 }

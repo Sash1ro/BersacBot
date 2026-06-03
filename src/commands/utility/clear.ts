@@ -1,5 +1,8 @@
 import {
   ChatInputCommandInteraction,
+  DMChannel,
+  GuildTextBasedChannel,
+  InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
@@ -9,6 +12,7 @@ import {
 
 import { Command } from "../../structures/Command";
 import { SuccessEmbed } from "../../structures/SuccessEmbed";
+import { reply, replyEphemeral } from "../../utils/interactionUtils";
 
 const amountOption = new SlashCommandIntegerOption()
   .setName("amount")
@@ -18,6 +22,11 @@ const amountOption = new SlashCommandIntegerOption()
 const command = new Command({
   name: "clear",
   description: "clear messages from this channel",
+  context: [
+    InteractionContextType.BotDM,
+    InteractionContextType.Guild,
+    InteractionContextType.PrivateChannel,
+  ],
   perms: [
     PermissionFlagsBits.ManageChannels,
     PermissionFlagsBits.ManageMessages,
@@ -28,27 +37,29 @@ const command = new Command({
 });
 
 async function onClear(interaction: ChatInputCommandInteraction) {
-  const channel = interaction.channel as TextChannel;
+  const channel = interaction.channel as GuildTextBasedChannel;
   const amount = interaction.options.getInteger(amountOption.name);
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  if (!amount) {
+  if (!amount && channel instanceof TextChannel) {
     channel.clone();
     channel.delete();
+    return;
+  } else if (!amount) {
+    replyEphemeral(
+      interaction,
+      "You need to provide the amount of messages (0-100)",
+    );
     return;
   }
 
   const deleted = await channel.bulkDelete(amount, true);
 
-  await interaction.editReply({
-    content: "",
-    embeds: [
-      new SuccessEmbed(
-        `Deleted **${deleted.size}** message${deleted.size === 1 ? "" : "s"}.`,
-      ),
-    ],
-  });
+  await replyEphemeral(
+    interaction,
+    `Deleted **${deleted.size}** message${deleted.size === 1 ? "" : "s"}.`,
+  );
 }
 
 export default command;

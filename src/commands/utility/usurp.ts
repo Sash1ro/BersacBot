@@ -10,6 +10,7 @@ import {
 } from "discord.js";
 import { Command } from "../../structures/Command";
 import { SuccessEmbed } from "../../structures/SuccessEmbed";
+import { BotClient } from "../../structures/BotClient";
 
 const userOption = new SlashCommandUserOption()
   .setName("user")
@@ -44,23 +45,16 @@ async function onTalk(interaction: ChatInputCommandInteraction) {
     (interaction.channel as TextChannel);
   const message = interaction.options.getString(messageOption.name, true);
   const user = interaction.options.getMember(userOption.name) as GuildMember;
-  const wbName = "Bot Shadow Editor";
 
-  const channelWebhooks = await channel.fetchWebhooks();
-  let webhook = channelWebhooks.find((c) => c.name === wbName);
-
-  if (!webhook) {
-    webhook = await channel.createWebhook({
-      name: wbName,
-      avatar: user.displayAvatarURL(),
-    });
-  }
+  const webhook = await (interaction.client as BotClient).getWebhookForChannel(
+    channel,
+  );
 
   await webhook.send({
     content: message,
     isUser: true,
     username: user.displayName || user.user.displayName,
-    avatarURL: user.displayAvatarURL(),
+    avatarURL: user.displayAvatarURL({ forceStatic: false }),
   });
 
   await interaction.reply({

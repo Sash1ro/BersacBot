@@ -3,6 +3,8 @@ import * as path from "node:path";
 
 import { Event } from "../structures/Event";
 import { BotClient } from "../structures/BotClient";
+import { Logger } from "./logger";
+
 const root = path.join(__dirname, "..");
 
 const eventsPath = path.join(root, "events");
@@ -16,7 +18,7 @@ export function registerEvent(client: BotClient) {
     const event: Event = require(filePath).default;
 
     if (!(event instanceof Event)) {
-      console.warn(`The event at ${filePath} is not a valid Event instance.`);
+      Logger.warn(`The event at ${filePath} is not a valid Event instance.`);
       return;
     }
 

@@ -8,10 +8,12 @@ import {
   escapeMarkdown,
   TimestampStyles,
   hyperlink,
+  EmbedBuilder,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
 import { SuccessEmbed } from "../../structures/SuccessEmbed";
+import { replyEphemeral } from "../../utils/interactionUtils";
 
 const user = new SlashCommandUserOption()
   .setName("target")
@@ -19,16 +21,28 @@ const user = new SlashCommandUserOption()
   .setRequired(false);
 
 const command: Command = new Command({
-  name: "userinfo",
-  description: "get the selected user info or yourself",
+  name: "user",
+  description: "user related commands",
 
-  builder: (data) => data.addUserOption(user),
-
-  execute: async (interaction: ChatInputCommandInteraction) =>
-    onUser(interaction),
+  subcommands: [
+    {
+      name: "info",
+      description: "get selected user info",
+      builder: (data) => data.addUserOption(user),
+      execute: async (interaction: ChatInputCommandInteraction) =>
+        onUserInfo(interaction),
+    },
+    {
+      name: "avatar",
+      description: "get selected user avatar",
+      builder: (data) => data.addUserOption(user),
+      execute: async (interaction: ChatInputCommandInteraction) =>
+        onUserAvatar(interaction),
+    },
+  ],
 });
 
-async function onUser(interaction: ChatInputCommandInteraction) {
+async function onUserInfo(interaction: ChatInputCommandInteraction) {
   const member = (interaction.options.getMember(user.name) ||
     interaction.member) as GuildMember;
 
@@ -70,6 +84,19 @@ async function onUser(interaction: ChatInputCommandInteraction) {
   ]);
 
   interaction.reply({ embeds: [embed] });
+}
+
+async function onUserAvatar(interaction: ChatInputCommandInteraction) {
+  const member = (interaction.options.getMember(user.name) ||
+    interaction.member) as GuildMember;
+  const avatar = member.displayAvatarURL() ?? member.avatarURL();
+  if (avatar)
+    interaction.reply({
+      embeds: [
+        new EmbedBuilder().setImage(avatar).setColor(member.displayColor),
+      ],
+    });
+  else replyEphemeral(interaction, `No avatar found for ${interaction.user}`);
 }
 
 export default command;

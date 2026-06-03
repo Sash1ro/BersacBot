@@ -7,6 +7,7 @@ import {
 import { Event } from "../structures/Event";
 import { Logger } from "../utils/logger";
 import path from "node:path";
+import { BotClient } from "../structures/BotClient";
 
 const banned: { [key: string]: string } = {
   idiot: "バカ",
@@ -30,8 +31,6 @@ const banned: { [key: string]: string } = {
   merde: "クソ",
   putain: "くそ",
   marchetti: "Marchetitebite",
-  lilian: "gay",
-  vector: "gay",
 };
 
 const sortedKeys = Object.keys(banned).sort((a, b) => b.length - a.length);
@@ -69,15 +68,9 @@ const event = new Event({
       await message.delete();
 
       const channel = message.channel as BaseGuildTextChannel;
-      const channelWebhooks = await channel.fetchWebhooks();
-      let webhook = channelWebhooks.first();
-
-      if (!webhook) {
-        webhook = await channel.createWebhook({
-          name: "Bot Shadow Editor",
-          avatar: message.client.user?.displayAvatarURL(),
-        });
-      }
+      const webhook = await (message.client as BotClient).getWebhookForChannel(
+        channel,
+      );
 
       const cleanedContent = message.content.replace(rgx, (match) => {
         return banned[match.toLowerCase()] || "バカ";

@@ -7,6 +7,7 @@ import {
 } from "discord.js";
 import { Event } from "../structures/Event";
 import { BotClient } from "../structures/BotClient";
+import { Logger } from "../utils/logger";
 
 const event = new Event({
   name: Events.InteractionCreate,
@@ -21,7 +22,7 @@ const event = new Event({
     try {
       await command.execute(interaction);
     } catch (error) {
-      console.error(error);
+      Logger.error(error as string);
 
       let errorReply = {
         content: "There was an error while executing this command!",

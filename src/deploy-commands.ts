@@ -3,8 +3,9 @@ import dotenv from "dotenv";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Command } from "./structures/Command";
+import { Logger } from "./utils/logger";
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const commands: object[] = [];
 
@@ -22,7 +23,7 @@ commandsFolders.forEach((folder) => {
     const command: Command = require(filePath).default;
     if (command instanceof Command) commands.push(command.data.toJSON());
     else
-      console.warn(
+      Logger.warn(
         `The command at ${filePath} is not a valid Command instance.`,
       );
   });
@@ -32,14 +33,14 @@ const rest = new REST().setToken(process.env.TOKEN!);
 
 (async () => {
   try {
-    console.log(`Refreshing ${commands.length} application (/) commands...`);
+    Logger.info(`Refreshing ${commands.length} application (/) commands...`);
 
     await rest.put(Routes.applicationCommands(process.env.ID!), {
       body: commands,
     });
 
-    console.log("Successfully reloaded application (/) commands.");
+    Logger.info("Successfully reloaded application (/) commands.");
   } catch (error) {
-    console.error(error);
+    Logger.error(error as string);
   }
 })();
