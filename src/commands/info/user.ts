@@ -9,6 +9,10 @@ import {
   TimestampStyles,
   hyperlink,
   EmbedBuilder,
+  InteractionContextType,
+  HexColorString,
+  ColorResolvable,
+  Colors,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
@@ -23,6 +27,11 @@ const user = new SlashCommandUserOption()
 const command: Command = new Command({
   name: "user",
   description: "user related commands",
+  context: [
+    InteractionContextType.Guild,
+    InteractionContextType.BotDM,
+    InteractionContextType.PrivateChannel,
+  ],
 
   subcommands: [
     {
@@ -43,58 +52,78 @@ const command: Command = new Command({
 });
 
 async function onUserInfo(interaction: ChatInputCommandInteraction) {
-  const member = (interaction.options.getMember(user.name) ||
-    interaction.member) as GuildMember;
+  const choosenUser = interaction.options.getUser(user.name);
+  const iUser = choosenUser || interaction.user;
 
-  const embed = new SuccessEmbed();
-  embed.setColor(member.displayColor || null);
-  embed.setThumbnail(member.displayAvatarURL());
-  embed.setTitle(member.displayName);
-  embed.setURL(`https://discord.com/users/${member.id}`);
-
-  const deco = member.user.avatarDecorationData
-    ? hyperlink("link", member.user.avatarDecorationURL() || "")
+  const deco = iUser.avatarDecorationData
+    ? hyperlink("link", iUser.avatarDecorationURL() || "")
     : "None";
 
-  let roles: string = member.roles.cache
-    .filter((r) => r.rawPosition > 0)
-    .map((role) => `${roleMention(role.id)}`)
-    .join(", ");
-
-  if (!roles.length) roles = "None";
-  if (roles.length > 1024) roles = roles.substring(0, 1020) + "...";
+  const embed = new SuccessEmbed();
+  embed.setThumbnail(iUser.displayAvatarURL());
+  embed.setTitle(iUser.displayName);
+  embed.setURL(`https://discord.com/users/${iUser.id}`);
 
   embed.setDescription(`
-    ${bold("ID")} : ${member.id}
-    ${bold("Username")} : ${escapeMarkdown(member.user.tag)}
+    ${bold("ID")} : ${iUser.id}
+    ${bold("Username")} : ${escapeMarkdown(iUser.tag)}
     ${bold("Decoration")} : ${deco}
     `);
 
-  const joinedAt = member.joinedAt
-    ? `${time(member.joinedAt)} (${time(member.joinedAt, TimestampStyles.RelativeTime)})`
-    : "Unknown";
-  const createdAt = member.user.createdAt
-    ? `${time(member.user.createdAt)} (${time(member.user.createdAt, TimestampStyles.RelativeTime)})`
-    : "Unknown";
+  if (interaction.context === InteractionContextType.Guild) {
+    const choosenMember = interaction.options.getMember(
+      user.name,
+    ) as GuildMember;
+    const member = choosenMember || interaction.member;
+    embed.setColor(member.displayColor);
 
-  embed.setFields([
-    { name: "Roles :", value: roles },
-    { name: "Joined at :", value: joinedAt },
-    { name: "Joined discord at :", value: createdAt },
-  ]);
+    let roles: string = member.roles.cache
+      .filter((r) => r.rawPosition > 0)
+      .map((role) => `${roleMention(role.id)}`)
+      .join(", ");
+
+    if (!roles.length) roles = "None";
+    if (roles.length > 1024) roles = roles.substring(0, 1020) + "...";
+
+    const joinedAt = member.joinedAt
+      ? `${time(member.joinedAt)} (${time(member.joinedAt, TimestampStyles.RelativeTime)})`
+      : "Unknown";
+
+    embed.addFields([
+      { name: "Roles :", value: roles },
+      { name: "Joined at :", value: joinedAt },
+    ]);
+  } else {
+    const color = (await iUser.fetch(true)).accentColor as ColorResolvable;
+    embed.setColor(color);
+    const createdAt = iUser.createdAt
+      ? `${time(iUser.createdAt)} (${time(iUser.createdAt, TimestampStyles.RelativeTime)})`
+      : "Unknown";
+    embed.addFields([{ name: "Joined discord at :", value: createdAt }]);
+  }
 
   interaction.reply({ embeds: [embed] });
 }
 
 async function onUserAvatar(interaction: ChatInputCommandInteraction) {
-  const member = (interaction.options.getMember(user.name) ||
-    interaction.member) as GuildMember;
-  const avatar = member.displayAvatarURL() ?? member.avatarURL();
-  if (avatar)
+  let avatarUrl = "";
+  let color: ColorResolvable = Colors.Blurple;
+
+  if (interaction.context === InteractionContextType.Guild) {
+    const member = (interaction.options.getMember(user.name) ||
+      interaction.member) as GuildMember;
+
+    avatarUrl = member.displayAvatarURL() ?? member.avatarURL();
+    color = member.displayColor;
+  } else {
+    const iUser = interaction.options.getUser(user.name) || interaction.user;
+    avatarUrl = iUser.displayAvatarURL() ?? iUser.avatarURL();
+    color = (await iUser.fetch(true)).accentColor as ColorResolvable;
+  }
+
+  if (avatarUrl)
     interaction.reply({
-      embeds: [
-        new EmbedBuilder().setImage(avatar).setColor(member.displayColor),
-      ],
+      embeds: [new EmbedBuilder().setImage(avatarUrl).setColor(color)],
     });
   else replyEphemeral(interaction, `No avatar found for ${interaction.user}`);
 }
