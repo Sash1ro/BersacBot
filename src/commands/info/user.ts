@@ -10,13 +10,11 @@ import {
   hyperlink,
   EmbedBuilder,
   InteractionContextType,
-  HexColorString,
   ColorResolvable,
   Colors,
 } from "discord.js";
 
 import { Command } from "../../structures/Command";
-import { SuccessEmbed } from "../../structures/SuccessEmbed";
 import { replyEphemeral } from "../../utils/interactionUtils";
 
 const user = new SlashCommandUserOption()
@@ -59,16 +57,14 @@ async function onUserInfo(interaction: ChatInputCommandInteraction) {
     ? hyperlink("link", iUser.avatarDecorationURL() || "")
     : "None";
 
-  const embed = new SuccessEmbed();
+  const embed = new EmbedBuilder();
   embed.setThumbnail(iUser.displayAvatarURL());
   embed.setTitle(iUser.displayName);
   embed.setURL(`https://discord.com/users/${iUser.id}`);
 
-  embed.setDescription(`
-    ${bold("ID")} : ${iUser.id}
-    ${bold("Username")} : ${escapeMarkdown(iUser.tag)}
-    ${bold("Decoration")} : ${deco}
-    `);
+  embed.setDescription(`${bold("ID")} : ${iUser.id}
+    ${bold("Username")} : ${escapeMarkdown(iUser.username)}
+    ${bold("Decoration")} : ${deco}`);
 
   if (interaction.context === InteractionContextType.Guild) {
     const choosenMember = interaction.options.getMember(
@@ -102,7 +98,7 @@ async function onUserInfo(interaction: ChatInputCommandInteraction) {
     embed.addFields([{ name: "Joined discord at :", value: createdAt }]);
   }
 
-  interaction.reply({ embeds: [embed] });
+  await interaction.reply({ embeds: [embed] });
 }
 
 async function onUserAvatar(interaction: ChatInputCommandInteraction) {
@@ -117,15 +113,19 @@ async function onUserAvatar(interaction: ChatInputCommandInteraction) {
     color = member.displayColor;
   } else {
     const iUser = interaction.options.getUser(user.name) || interaction.user;
-    avatarUrl = iUser.displayAvatarURL() ?? iUser.avatarURL();
+    avatarUrl = iUser.displayAvatarURL();
     color = (await iUser.fetch(true)).accentColor as ColorResolvable;
   }
 
   if (avatarUrl)
-    interaction.reply({
+    await interaction.reply({
       embeds: [new EmbedBuilder().setImage(avatarUrl).setColor(color)],
     });
-  else replyEphemeral(interaction, `No avatar found for ${interaction.user}`);
+  else
+    await replyEphemeral(
+      interaction,
+      `No avatar found for ${interaction.user}`,
+    );
 }
 
 export default command;
